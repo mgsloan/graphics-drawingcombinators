@@ -82,6 +82,7 @@ import Graphics.DrawingCombinators.Affine
 import Control.Applicative (Applicative(..), liftA2, (*>), (<$>))
 import Data.Monoid (Monoid(..), Any(..))
 import qualified Graphics.DrawingCombinators.Bitmap as Bitmap
+import           Graphics.Rendering.OpenGL.GL (($=))
 import qualified Graphics.Rendering.OpenGL.GL as GL
 import qualified Codec.Image.STB as Image
 import System.IO.Unsafe (unsafePerformIO)  -- for pure textWidth
@@ -135,16 +136,16 @@ instance (Monoid m) => Monoid (Image m) where
 -- lower left and (1,1) in the upper right).
 render :: Image a -> IO ()
 render d = GL.preservingAttrib [GL.AllServerAttributes] $ do
-    GL.texture GL.Texture2D GL.$= GL.Enabled
-    GL.blend GL.$= GL.Enabled
-    GL.blendFunc GL.$= (GL.SrcAlpha, GL.OneMinusSrcAlpha)
+    GL.texture GL.Texture2D $= GL.Enabled
+    GL.blend $= GL.Enabled
+    GL.blendFunc $= (GL.SrcAlpha, GL.OneMinusSrcAlpha)
     -- For now we assume the user wants antialiasing; the general solution is not clear - maybe let the
     -- user do the opengl setup stuff himself? otherwise need to wrap all of the possible things GL lets
     -- you set.
-    GL.polygonSmooth GL.$= GL.Enabled
-    GL.lineSmooth GL.$= GL.Enabled
-    GL.lineWidth GL.$= 1.5
-    GL.hint GL.LineSmooth GL.$= GL.DontCare
+    GL.polygonSmooth $= GL.Enabled
+    GL.lineSmooth $= GL.Enabled
+    GL.lineWidth $= 1.5
+    GL.hint GL.LineSmooth $= GL.DontCare
 
     dRender d identity white
 
@@ -223,8 +224,8 @@ bezierCurve controlPoints = Image render' (const (Any False))
     render' tr _ = do
         let ps = map (toVertex3 0 tr) controlPoints
         m <- GL.newMap1 (0,1) ps :: IO (GL.GLmap1 (GL.Vertex3) R)
-        GL.map1 GL.$= Just m
-        GL.mapGrid1 GL.$= (100, (0::R, 1))
+        GL.map1 $= Just m
+        GL.mapGrid1 $= (100, (0::R, 1))
         GL.evalMesh1 GL.Line (1,100)
 
 {-----------------
@@ -322,7 +323,7 @@ sprite spr = Image render' pick
     where
     render' tr _ = do
         oldtex <- GL.get (GL.textureBinding GL.Texture2D)
-        GL.textureBinding GL.Texture2D GL.$= (Just $ spriteObject spr)
+        GL.textureBinding GL.Texture2D $= (Just $ spriteObject spr)
         GL.renderPrimitive GL.Quads $ do
             texcoord 0 0
             GL.vertex   $ toVertex tr (-1, 1)
@@ -332,7 +333,7 @@ sprite spr = Image render' pick
             GL.vertex   $ toVertex tr (1,-1)
             texcoord 0 1
             GL.vertex   $ toVertex tr (-1,-1)
-        GL.textureBinding GL.Texture2D GL.$= oldtex
+        GL.textureBinding GL.Texture2D $= oldtex
     pick (x,y) | -1 <= x && x <= 1 && -1 <= y && y <= 1 = Any True
                | otherwise                              = Any False
     texcoord x y = GL.texCoord $ GL.TexCoord2 (x :: GL.GLdouble) (y :: GL.GLdouble)
