@@ -382,7 +382,7 @@ renderText font str = do
 -- | Load a TTF font from a file.
 openFont :: String -> IO Font
 openFont path = do
-    font <- FTGL.createPolygonFont path
+    font <- FTGL.createTextureFont path
     addFinalizer font (FTGL.destroyFont font)
     _ <- FTGL.setFontFaceSize font 72 72
     return $ Font font
